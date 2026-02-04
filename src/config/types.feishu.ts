@@ -84,7 +84,7 @@ export type FeishuAccountConfig = {
   retry?: OutboundRetryConfig;
   /** Heartbeat visibility settings for this channel. */
   heartbeat?: ChannelHeartbeatVisibilityConfig;
-  /** Per-channel outbound response prefix override. */
+  /** Outbound response prefix override for this channel/account. */
   responsePrefix?: string;
 };
 

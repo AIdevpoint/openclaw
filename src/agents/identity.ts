@@ -53,6 +53,18 @@ export function resolveMessagePrefix(
   return resolveIdentityNamePrefix(cfg, agentId) ?? opts?.fallback ?? "[openclaw]";
 }
 
+/** Helper to extract a channel config value by dynamic key. */
+function getChannelConfig(
+  cfg: OpenClawConfig,
+  channel: string,
+): Record<string, unknown> | undefined {
+  const channels = cfg.channels as Record<string, unknown> | undefined;
+  const value = channels?.[channel];
+  return typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
 export function resolveResponsePrefix(
   cfg: OpenClawConfig,
   agentId: string,
@@ -60,19 +72,25 @@ export function resolveResponsePrefix(
 ): string | undefined {
   // L1: Channel account level
   if (opts?.channel && opts?.accountId) {
-    const channelCfg = (cfg.channels as Record<string, any>)?.[opts.channel];
-    const accountPrefix = channelCfg?.accounts?.[opts.accountId]?.responsePrefix;
+    const channelCfg = getChannelConfig(cfg, opts.channel);
+    const accounts = channelCfg?.accounts as Record<string, Record<string, unknown>> | undefined;
+    const accountPrefix = accounts?.[opts.accountId]?.responsePrefix as string | undefined;
     if (accountPrefix !== undefined) {
-      if (accountPrefix === "auto") return resolveIdentityNamePrefix(cfg, agentId);
+      if (accountPrefix === "auto") {
+        return resolveIdentityNamePrefix(cfg, agentId);
+      }
       return accountPrefix;
     }
   }
 
   // L2: Channel level
   if (opts?.channel) {
-    const channelPrefix = (cfg.channels as Record<string, any>)?.[opts.channel]?.responsePrefix;
+    const channelCfg = getChannelConfig(cfg, opts.channel);
+    const channelPrefix = channelCfg?.responsePrefix as string | undefined;
     if (channelPrefix !== undefined) {
-      if (channelPrefix === "auto") return resolveIdentityNamePrefix(cfg, agentId);
+      if (channelPrefix === "auto") {
+        return resolveIdentityNamePrefix(cfg, agentId);
+      }
       return channelPrefix;
     }
   }
